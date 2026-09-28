@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noxel — Login</title>
+  <link rel="icon" href="Logo.png" type="image/png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      position: relative;
+      transition: background 0.8s ease;
+    }
+
+    body.signup-theme {
+      background: linear-gradient(135deg, #1a0b2e, #2d1b4e, #3b1d5c);
+    }
+
+    body.success-theme {
+      background: linear-gradient(135deg, #064e3b, #065f46, #047857) !important;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.55;
+      animation: float 14s ease-in-out infinite;
+      transition: background 0.8s ease, opacity 0.8s ease;
+    }
+
+    .blob-1 {
+      width: 420px;
+      height: 420px;
+      background: #ff6b6b;
+      top: -120px;
+      left: -120px;
+    }
+
+    .blob-2 {
+      width: 360px;
+      height: 360px;
+      background: #4ecdc4;
+      bottom: -100px;
+      right: -100px;
+      animation-delay: -5s;
+    }
+
+    .blob-3 {
+      width: 300px;
+      height: 300px;
+      background: #a78bfa;
+      top: 35%;
+      left: 55%;
+      animation-delay: -9s;
+    }
+
+    body.signup-theme .blob-1 { background: #c084fc; }
+    body.signup-theme .blob-2 { background: #f472b6; }
+    body.signup-theme .blob-3 { background: #818cf8; }
+
+    body.success-theme .blob-1 { background: #34d399; opacity: 0.4; }
+    body.success-theme .blob-2 { background: #6ee7b7; opacity: 0.4; }
+    body.success-theme .blob-3 { background: #a7f3d0; opacity: 0.35; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -40px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    .glass {
+      width: 100%;
+      max-width: 420px;
+      padding: 48px 40px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+      z-index: 10;
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    body.success-theme .glass {
+      border-color: rgba(52, 211, 153, 0.35);
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(167, 243, 208, 0.15);
+    }
+
+    .logo-top {
+      text-align: center;
+      margin-bottom: 28px;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.7s ease forwards 0.1s;
+    }
+
+    .logo-top img {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      margin-bottom: 10px;
+    }
+
+    .logo-top span {
+      display: block;
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .message {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .message h1 {
+      font-size: 28px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.7s ease forwards 0.2s;
+    }
+
+    .message p {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.65);
+      font-weight: 300;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.7s ease forwards 0.35s;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group {
+      margin-bottom: 22px;
+      position: relative;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.6s ease forwards;
+    }
+
+    .form-group:nth-child(1) { animation-delay: 0.4s; }
+    .form-group:nth-child(2) { animation-delay: 0.5s; }
+    .form-group:nth-child(3) { animation-delay: 0.6s; }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 8px;
+      font-weight: 400;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      stroke: rgba(255, 255, 255, 0.45);
+      pointer-events: none;
+      transition: stroke 0.3s;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 18px 14px 46px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      color: #fff;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    .form-group input:focus {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+    }
+
+    .input-wrapper:focus-within svg {
+      stroke: rgba(255, 255, 255, 0.85);
+    }
+
+    .strength-meter {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .strength-meter.active {
+      display: block;
+    }
+
+    .strength-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .strength-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.4s ease, background 0.4s ease;
+    }
+
+    .strength-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 400;
+    }
+
+    .strength-text.weak { color: #f87171; }
+    .strength-text.medium { color: #fbbf24; }
+    .strength-text.strong { color: #34d399; }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      margin-top: 8px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.35s ease;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.6s ease forwards 0.7s;
+      font-family: inherit;
+    }
+
+    body.success-theme .btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(102, 126, 234, 0.4);
+    }
+
+    body.success-theme .btn:hover {
+      box-shadow: 0 12px 28px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .toggle {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.85s;
+    }
+
+    .toggle a {
+      color: #a78bfa;
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 6px;
+      transition: color 0.3s;
+    }
+
+    .toggle a:hover {
+      color: #c4b5fd;
+    }
+
+    body.success-theme .toggle a {
+      color: #6ee7b7;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .success-box {
+      display: none;
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+
+    .success-box.show {
+      display: block;
+      animation: fadeUp 0.6s ease forwards;
+    }
+
+    .success-box .icon-check {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: rgba(52, 211, 153, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .success-box .icon-check svg {
+      width: 28px;
+      height: 28px;
+      stroke: #34d399;
+    }
+
+    .success-box h2 {
+      font-size: 22px;
+      color: #fff;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .success-box p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .back-home {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      z-index: 20;
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.3s;
+    }
+
+    .back-home:hover {
+      color: #fff;
+    }
+
+    .footer-credit {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.4);
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <a href="index.html" class="back-home">
+    ← Back to Home
+  </a>
+
+  <div class="glass">
+    <div class="logo-top">
+      <img src="Logo.png" alt="Noxel" onerror="this.style.display='none'">
+      <span>Noxel</span>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <div class="message">
+        <h1>Welcome back, friend</h1>
+        <p>We’re glad you’re here again</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <div class="input-wrapper">
+            <input type="email" placeholder="you@example.com" required>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <input type="password" placeholder="••••••••" required>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+        </div>
+        <button type="submit" class="btn">Sign In</button>
+      </form>
+
+      <div class="toggle">
+        Don’t have an account?
+        <a href="#" onclick="switchToSignup()">Get started</a>
+      </div>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div id="signupForm" class="hidden">
+      <div class="message">
+        <h1>Get started</h1>
+        <p>Create your account in seconds</p>
+      </div>
+
+      <form onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label>Full Name</label>
+          <div class="input-wrapper">
+            <input type="text" placeholder="Alex Rivera" required>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <div class="input-wrapper">
+            <input type="email" placeholder="you@example.com" required>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="signupPassword" placeholder="••••••••" required oninput="checkPasswordStrength(this.value)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+
+          <div class="strength-meter" id="strengthMeter">
+            <div class="strength-bar">
+              <div class="strength-bar-fill" id="strengthBar"></div>
+            </div>
+            <div class="strength-text" id="strengthText">Enter a password</div>
+          </div>
+        </div>
+        <button type="submit" class="btn" id="signupBtn">Create Account</button>
+      </form>
+
+      <div class="toggle">
+        Already have an account?
+        <a href="#" onclick="switchToLogin()">Welcome back</a>
+      </div>
+    </div>
+
+    <!-- Success / Redirect state -->
+    <div class="success-box" id="successBox">
+      <div class="icon-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2 id="successTitle">Success</h2>
+      <p id="successDesc">Redirecting you now...</p>
+    </div>
+  </div>
+
+  <div class="footer-credit">Created with ❤️ by Reymit</div>
+
+<script>
+  let isStrongPassword = false;
+
+  function switchToSignup() {
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('signupForm').classList.remove('hidden');
+    document.getElementById('successBox').classList.remove('show');
+    document.body.classList.remove('success-theme');
+    document.body.classList.add('signup-theme');
+  }
+
+  function switchToLogin() {
+    document.getElementById('signupForm').classList.add('hidden');
+    document.getElementById('loginForm').classList.remove('hidden');
+    document.getElementById('successBox').classList.remove('show');
+    document.body.classList.remove('success-theme', 'signup-theme');
+  }
+
+  function checkPasswordStrength(password) {
+    const meter = document.getElementById('strengthMeter');
+    const bar = document.getElementById('strengthBar');
+    const text = document.getElementById('strengthText');
+
+    meter.classList.add('active');
+
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (password.length === 0) {
+      bar.style.width = '0%';
+      text.textContent = 'Enter a password';
+      text.className = 'strength-text';
+      isStrongPassword = false;
+      return;
+    }
+
+    if (score <= 1) {
+      bar.style.width = '33%';
+      bar.style.background = '#f87171';
+      text.textContent = 'Weak — add more characters & symbols';
+      text.className = 'strength-text weak';
+      isStrongPassword = false;
+    } else if (score === 2 || score === 3) {
+      bar.style.width = '66%';
+      bar.style.background = '#fbbf24';
+      text.textContent = 'Medium — almost there';
+      text.className = 'strength-text medium';
+      isStrongPassword = false;
+    } else {
+      bar.style.width = '100%';
+      bar.style.background = '#34d399';
+      text.textContent = 'Strong — good to go';
+      text.className = 'strength-text strong';
+      isStrongPassword = true;
+    }
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    showSuccess('Welcome back', 'You are signed in. Redirecting to panel...');
+  }
+
+  function handleSignup(e) {
+    e.preventDefault();
+    if (!isStrongPassword) {
+      const text = document.getElementById('strengthText');
+      text.textContent = 'Please choose a stronger password';
+      text.className = 'strength-text weak';
+      return;
+    }
+    showSuccess('Account created', 'Everything is ready. Redirecting to panel...');
+  }
+
+  function showSuccess(title, desc) {
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('signupForm').classList.add('hidden');
+    document.getElementById('successTitle').textContent = title;
+    document.getElementById('successDesc').textContent = desc;
+    document.getElementById('successBox').classList.add('show');
+    document.body.classList.remove('signup-theme');
+    document.body.classList.add('success-theme');
+
+    setTimeout(() => {
+      document.getElementById('successDesc').textContent = 'Taking you to your dashboard...';
+      setTimeout(() => {
+        window.location.href = 'panel.html';
+      }, 1200);
+    }, 1800);
+  }
+</script>
+</body>
+</html>

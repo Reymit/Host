@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noxel — Premium Minecraft Hosting</title>
+  <link rel="icon" href="Logo.png" type="image/png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --purple-900: #1a0b2e;
+      --purple-800: #2d1b4e;
+      --purple-700: #3b1d5c;
+      --purple-600: #5b21b6;
+      --purple-500: #7c3aed;
+      --purple-400: #a78bfa;
+      --purple-300: #c4b5fd;
+      --glass: rgba(255, 255, 255, 0.07);
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --text: #f5f3ff;
+      --text-muted: rgba(245, 243, 255, 0.65);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--purple-900), var(--purple-800), #1e1b4b);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.45;
+      pointer-events: none;
+      z-index: 0;
+      animation: float 18s ease-in-out infinite;
+    }
+    .blob-1 { width: 500px; height: 500px; background: #7c3aed; top: -150px; left: -150px; }
+    .blob-2 { width: 400px; height: 400px; background: #a855f7; bottom: -100px; right: -100px; animation-delay: -6s; }
+    .blob-3 { width: 350px; height: 350px; background: #6366f1; top: 40%; left: 50%; animation-delay: -12s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -50px) scale(1.08); }
+      66% { transform: translate(-30px, 30px) scale(0.92); }
+    }
+
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(26, 11, 46, 0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      transition: all 0.4s ease;
+    }
+
+    .navbar.scrolled {
+      padding: 12px 40px;
+      background: rgba(26, 11, 46, 0.85);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .logo img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      object-fit: contain;
+    }
+
+    .logo span {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.3s;
+      position: relative;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--text);
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--purple-400);
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a.active::after {
+      width: 100%;
+    }
+
+    .nav-cta {
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-600));
+      border-radius: 12px;
+      color: white !important;
+      font-weight: 600;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .nav-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+    }
+
+    .nav-cta::after { display: none !important; }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--purple-300);
+      margin-bottom: 28px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s ease forwards 0.2s;
+    }
+
+    .hero-badge svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s ease forwards 0.35s;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(20px, 3.5vw, 32px);
+      font-weight: 400;
+      color: var(--text-muted);
+      min-height: 48px;
+      margin-bottom: 40px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s ease forwards 0.5s;
+    }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 3px;
+      height: 1.1em;
+      background: var(--purple-400);
+      margin-left: 4px;
+      vertical-align: middle;
+      animation: blink 0.8s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s ease forwards 0.65s;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.35s ease;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-600));
+      color: white;
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 32px rgba(124, 58, 237, 0.5);
+    }
+
+    .btn-secondary {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-3px);
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Features Section */
+    .section {
+      position: relative;
+      z-index: 10;
+      padding: 100px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
+    }
+
+    .section-header p {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(167, 139, 250, 0.35);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(167, 139, 250, 0.15));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .card-icon svg {
+      width: 26px;
+      height: 26px;
+      stroke: var(--purple-300);
+    }
+
+    .card h3 {
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 24px;
+      margin-top: 80px;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 28px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      backdrop-filter: blur(16px);
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--purple-300);
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* CTA Section */
+    .cta-section {
+      text-align: center;
+      padding: 80px 24px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .cta-box {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 56px 40px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      backdrop-filter: blur(24px);
+    }
+
+    .cta-box h2 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .cta-box p {
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      font-size: 16px;
+    }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(26, 11, 46, 0.4);
+      backdrop-filter: blur(12px);
+    }
+
+    footer p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--purple-300);
+      text-decoration: none;
+    }
+
+    /* Chatbot */
+    .chatbot-toggle {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-600));
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.45);
+      z-index: 200;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .chatbot-toggle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 14px 36px rgba(124, 58, 237, 0.55);
+    }
+
+    .chatbot-toggle svg {
+      width: 28px;
+      height: 28px;
+      stroke: white;
+    }
+
+    .chatbot-window {
+      position: fixed;
+      bottom: 100px;
+      right: 28px;
+      width: 360px;
+      max-width: calc(100vw - 40px);
+      height: 480px;
+      background: rgba(26, 11, 46, 0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+      overflow: hidden;
+    }
+
+    .chatbot-window.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+
+    .chatbot-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chatbot-header h4 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .chatbot-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .chatbot-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-msg {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-msg.bot {
+      background: rgba(124, 58, 237, 0.2);
+      border: 1px solid rgba(167, 139, 250, 0.2);
+      align-self: flex-start;
+    }
+
+    .chat-msg.user {
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-600));
+      align-self: flex-end;
+    }
+
+    .chatbot-input {
+      padding: 16px;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      gap: 10px;
+    }
+
+    .chatbot-input input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .chatbot-input input:focus {
+      border-color: var(--purple-400);
+    }
+
+    .chatbot-input button {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-600));
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chatbot-input button svg {
+      width: 18px;
+      height: 18px;
+      stroke: white;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .navbar { padding: 14px 20px; }
+      .nav-links { gap: 18px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero { padding-top: 100px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="logo">
+      <img src="Logo.png" alt="Noxel Logo" onerror="this.style.display='none'">
+      <span>Noxel</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="panel.html">Panel preview</a>
+      <a href="login.html" class="nav-cta">Login</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+      Premium Minecraft Hosting
+    </div>
+    <h1 class="hero-title">Why choose us?</h1>
+    <p class="hero-subtitle">
+      <span id="typingText"></span><span class="typing-cursor"></span>
+    </p>
+    <div class="hero-buttons">
+      <a href="login.html" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+        Get Started
+      </a>
+      <a href="#features" class="btn btn-secondary">Learn More</a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="section-header">
+      <h2>Everything you need</h2>
+      <p>Powerful tools and rock-solid performance for your Minecraft world</p>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <h3>Why us?</h3>
+        <p>Blazing-fast NVMe servers, DDoS protection, and 99.9% uptime. Built for serious Minecraft communities.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <h3>Is it free?</h3>
+        <p>We offer a free trial plan so you can test everything. After that, flexible paid plans start from just a few dollars.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+          </svg>
+        </div>
+        <h3>Great Panel</h3>
+        <p>Beautiful liquid-glass control panel with file manager, plugin manager, player list and real-time stats.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3>Secure & Protected</h3>
+        <p>Enterprise-grade DDoS protection and automatic backups keep your world safe 24/7.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3>One-Click Mods</h3>
+        <p>Install popular plugins and modpacks in seconds. No complicated setup required.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <h3>Global Locations</h3>
+        <p>Servers in multiple regions so your players enjoy the lowest possible latency.</p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number">99.9%</div>
+        <div class="stat-label">Uptime</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">12k+</div>
+        <div class="stat-label">Active Servers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">&lt;20ms</div>
+        <div class="stat-label">Avg Latency</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">Support</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-box">
+      <h2>Ready to start your server?</h2>
+      <p>Join thousands of players who trust Noxel for their Minecraft worlds.</p>
+      <a href="login.html" class="btn btn-primary">Create Account</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>Created with ❤️ by Reymit</p>
+  </footer>
+
+  <!-- Chatbot -->
+  <button class="chatbot-toggle" id="chatToggle" aria-label="Open chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  </button>
+
+  <div class="chatbot-window" id="chatWindow">
+    <div class="chatbot-header">
+      <h4>Noxel Assistant</h4>
+      <button class="chatbot-close" id="chatClose">×</button>
+    </div>
+    <div class="chatbot-messages" id="chatMessages">
+      <div class="chat-msg bot">Hi! 👋 I'm the Noxel assistant. Ask me anything about our Minecraft hosting.</div>
+    </div>
+    <div class="chatbot-input">
+      <input type="text" id="chatInput" placeholder="Type your question..." autocomplete="off">
+      <button id="chatSend">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Navbar scroll
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // Typing effect
+    const phrases = [
+      "Fast servers",
+      "great panel",
+      "secure & protected",
+      "one-click plugins",
+      "24/7 support"
+    ];
+    const typingEl = document.getElementById('typingText');
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typingSpeed = 80;
+
+    function type() {
+      const current = phrases[phraseIndex];
+      
+      if (isDeleting) {
+        typingEl.textContent = current.substring(0, charIndex - 1);
+        charIndex--;
+        typingSpeed = 40;
+      } else {
+        typingEl.textContent = current.substring(0, charIndex + 1);
+        charIndex++;
+        typingSpeed = 80;
+      }
+
+      if (!isDeleting && charIndex === current.length) {
+        isDeleting = true;
+        typingSpeed = 1800;
+      } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        typingSpeed = 400;
+      }
+
+      setTimeout(type, typingSpeed);
+    }
+    setTimeout(type, 1200);
+
+    // Cards intersection observer
+    const cards = document.querySelectorAll('.card');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        }
+      });
+    }, { threshold: 0.15 });
+    cards.forEach(card => observer.observe(card));
+
+    // Chatbot
+    const chatToggle = document.getElementById('chatToggle');
+    const chatWindow = document.getElementById('chatWindow');
+    const chatClose = document.getElementById('chatClose');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+    const chatMessages = document.getElementById('chatMessages');
+
+    chatToggle.addEventListener('click', () => chatWindow.classList.add('open'));
+    chatClose.addEventListener('click', () => chatWindow.classList.remove('open'));
+
+    const botReplies = {
+      'price': 'Our plans start from $4.99/month. We also offer a free trial so you can test everything first!',
+      'free': 'Yes! We have a free trial plan. You can create a server and try all features with no credit card required.',
+      'panel': 'Our control panel is built with liquid glass design. It includes file manager, plugin manager, player list, domain settings and more — all with smooth animations.',
+      'location': 'We have servers in Europe, North America and Asia for the lowest possible latency.',
+      'support': 'Our support team is available 24/7 via ticket and Discord.',
+      'ddos': 'Every server comes with enterprise-grade DDoS protection included at no extra cost.',
+      'default': 'Thanks for your question! You can also check our documentation or open a support ticket. How else can I help?'
+    };
+
+    function getBotReply(msg) {
+      const lower = msg.toLowerCase();
+      if (lower.includes('price') || lower.includes('cost') || lower.includes('plan')) return botReplies.price;
+      if (lower.includes('free') || lower.includes('trial')) return botReplies.free;
+      if (lower.includes('panel') || lower.includes('dashboard')) return botReplies.panel;
+      if (lower.includes('location') || lower.includes('region') || lower.includes('ping')) return botReplies.location;
+      if (lower.includes('support') || lower.includes('help')) return botReplies.support;
+      if (lower.includes('ddos') || lower.includes('protect') || lower.includes('secure')) return botReplies.ddos;
+      return botReplies.default;
+    }
+
+    function addMessage(text, type) {
+      const div = document.createElement('div');
+      div.className = `chat-msg ${type}`;
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      addMessage(text, 'user');
+      chatInput.value = '';
+      setTimeout(() => {
+        addMessage(getBotReply(text), 'bot');
+      }, 600);
+    }
+
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>

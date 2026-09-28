@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noxel Panel — Control Center</title>
+  <link rel="icon" href="Logo.png" type="image/png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --purple-900: #1a0b2e;
+      --purple-800: #2d1b4e;
+      --purple-700: #3b1d5c;
+      --purple-600: #5b21b6;
+      --purple-500: #7c3aed;
+      --purple-400: #a78bfa;
+      --purple-300: #c4b5fd;
+      --glass: rgba(255, 255, 255, 0.07);
+      --glass-border: rgba(255, 255, 255, 0.13);
+      --text: #f5f3ff;
+      --text-muted: rgba(245, 243, 255, 0.62);
+      --sidebar-width: 260px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, var(--purple-900), #1e1b4b, var(--purple-800));
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+      animation: float 20s ease-in-out infinite;
+    }
+    .blob-1 { width: 450px; height: 450px; background: #7c3aed; top: -120px; left: -100px; }
+    .blob-2 { width: 380px; height: 380px; background: #a855f7; bottom: -80px; right: -80px; animation-delay: -7s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      50% { transform: translate(30px,-40px) scale(1.06); }
+    }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: rgba(26, 11, 46, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-right: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 50;
+      transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .sidebar-header {
+      padding: 24px 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .sidebar-header img {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+    }
+
+    .sidebar-header span {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      flex-shrink: 0;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(167, 139, 250, 0.12));
+      color: var(--purple-300);
+      border: 1px solid rgba(167, 139, 250, 0.2);
+    }
+
+    .sidebar-footer {
+      padding: 18px 22px;
+      border-top: 1px solid var(--glass-border);
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 28px 32px 60px;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .topbar h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .server-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      border-radius: 100px;
+      font-size: 13px;
+      color: #6ee7b7;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #34d399;
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
+    }
+
+    /* Panels */
+    .panel-section {
+      display: none;
+      animation: fadeIn 0.45s ease;
+    }
+
+    .panel-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .glass-card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: all 0.35s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(167, 139, 250, 0.28);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .glass-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .glass-card h3 svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--purple-300);
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      transition: transform 0.3s;
+    }
+
+    .stat-card:hover { transform: translateY(-4px); }
+
+    .stat-card .label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-card .value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--purple-300);
+    }
+
+    /* File Manager */
+    .file-toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-600));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35);
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      color: var(--text);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid transparent;
+      transition: all 0.25s;
+      cursor: pointer;
+    }
+
+    .file-item:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--glass-border);
+    }
+
+    .file-item svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--purple-300);
+      flex-shrink: 0;
+    }
+
+    .file-item .name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .file-item .size {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Server Status */
+    .progress-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 8px;
+      transition: width 1s ease;
+    }
+
+    .progress-fill.cpu { background: linear-gradient(90deg, #a78bfa, #7c3aed); width: 42%; }
+    .progress-fill.ram { background: linear-gradient(90deg, #67e8f9, #06b6d4); width: 68%; }
+    .progress-fill.disk { background: linear-gradient(90deg, #6ee7b7, #10b981); width: 35%; }
+
+    /* Domain */
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: var(--purple-400);
+    }
+
+    /* Player list */
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .player-row:last-child { border-bottom: none; }
+
+    .player-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-600));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .player-info {
+      flex: 1;
+    }
+
+    .player-info .name { font-size: 14px; font-weight: 500; }
+    .player-info .meta { font-size: 12px; color: var(--text-muted); }
+
+    .player-action {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      background: rgba(248, 113, 113, 0.12);
+      color: #fca5a5;
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .player-action:hover {
+      background: rgba(248, 113, 113, 0.22);
+    }
+
+    /* Plugin list */
+    .plugin-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .plugin-item:last-child { border-bottom: none; }
+
+    .plugin-info h4 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .plugin-info span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .toggle-switch {
+      width: 44px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle-switch.active {
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-600));
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.3s;
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(20px);
+    }
+
+    /* Mobile */
+    .mobile-menu-btn {
+      display: none;
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      z-index: 60;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(26, 11, 46, 0.85);
+      border: 1px solid var(--glass-border);
+      color: white;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main {
+        margin-left: 0;
+        padding: 70px 18px 40px;
+      }
+      .mobile-menu-btn {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <button class="mobile-menu-btn" id="mobileMenuBtn">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="Logo.png" alt="Noxel" onerror="this.style.display='none'">
+        <span><a href="index.html">Noxel</a></span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          Server Status
+        </button>
+        <button class="nav-item" data-section="files">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          File Manager
+        </button>
+        <button class="nav-item" data-section="domain">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          Domain
+        </button>
+        <button class="nav-item" data-section="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          Server Settings
+        </button>
+        <button class="nav-item" data-section="toolbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+          Toolbox
+        </button>
+        <button class="nav-item" data-section="plugins">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          Plugin Manager
+        </button>
+        <button class="nav-item" data-section="players">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Player List
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        Created with ❤️ by Reymit
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="topbar">
+        <h1 id="sectionTitle">Server Status</h1>
+        <div class="server-status-badge">
+          <span class="status-dot"></span>
+          Online
+        </div>
+      </div>
+
+      <!-- Server Status -->
+      <div class="panel-section active" id="section-status">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="label">Players Online</div>
+            <div class="value">14 / 50</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Uptime</div>
+            <div class="value">4d 12h</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">TPS</div>
+            <div class="value">19.8</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Version</div>
+            <div class="value">1.21.1</div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Resource Usage
+          </h3>
+          <div style="margin-bottom:18px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+              <span>CPU</span><span>42%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill cpu"></div></div>
+          </div>
+          <div style="margin-bottom:18px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+              <span>RAM</span><span>6.8 / 10 GB</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill ram"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+              <span>Disk</span><span>35%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill disk"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Manager -->
+      <div class="panel-section" id="section-files">
+        <div class="glass-card">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            File Manager
+          </h3>
+          <div class="file-toolbar">
+            <button class="btn btn-primary">Upload</button>
+            <button class="btn btn-ghost">New Folder</button>
+            <button class="btn btn-ghost">Refresh</button>
+          </div>
+          <div class="file-list">
+            <div class="file-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <span class="name">plugins/</span>
+              <span class="size">—</span>
+            </div>
+            <div class="file-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <span class="name">world/</span>
+              <span class="size">—</span>
+            </div>
+            <div class="file-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="name">server.properties</span>
+              <span class="size">2.4 KB</span>
+            </div>
+            <div class="file-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="name">ops.json</span>
+              <span class="size">128 B</span>
+            </div>
+            <div class="file-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="name">whitelist.json</span>
+              <span class="size">64 B</span>
+            </div>
+            <div class="file-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="name">latest.log</span>
+              <span class="size">1.2 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domain -->
+      <div class="panel-section" id="section-domain">
+        <div class="glass-card">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Domain Settings
+          </h3>
+          <div class="input-group">
+            <label>Server Address</label>
+            <input type="text" value="play.noxel.gg" readonly>
+          </div>
+          <div class="input-group">
+            <label>Custom Domain</label>
+            <input type="text" placeholder="mc.yourdomain.com">
+          </div>
+          <div class="input-group">
+            <label>Port</label>
+            <input type="text" value="25565" readonly>
+          </div>
+          <button class="btn btn-primary" style="margin-top:8px">Save Domain</button>
+        </div>
+      </div>
+
+      <!-- Server Settings -->
+      <div class="panel-section" id="section-settings">
+        <div class="glass-card">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Server Settings
+          </h3>
+          <div class="input-group">
+            <label>Server Name</label>
+            <input type="text" value="Noxel Survival">
+          </div>
+          <div class="input-group">
+            <label>Max Players</label>
+            <input type="number" value="50">
+          </div>
+          <div class="input-group">
+            <label>Gamemode</label>
+            <select>
+              <option>Survival</option>
+              <option>Creative</option>
+              <option>Adventure</option>
+              <option>Spectator</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Difficulty</label>
+            <select>
+              <option>Easy</option>
+              <option selected>Normal</option>
+              <option>Hard</option>
+              <option>Peaceful</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="margin-top:8px">Save Settings</button>
+        </div>
+      </div>
+
+      <!-- Toolbox -->
+      <div class="panel-section" id="section-toolbox">
+        <div class="glass-card">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            Toolbox
+          </h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+            <button class="btn btn-ghost" style="justify-content:center;padding:16px">Restart Server</button>
+            <button class="btn btn-ghost" style="justify-content:center;padding:16px">Stop Server</button>
+            <button class="btn btn-ghost" style="justify-content:center;padding:16px">Create Backup</button>
+            <button class="btn btn-ghost" style="justify-content:center;padding:16px">Console</button>
+            <button class="btn btn-ghost" style="justify-content:center;padding:16px">Schedule Tasks</button>
+            <button class="btn btn-ghost" style="justify-content:center;padding:16px">World Download</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plugin Manager -->
+      <div class="panel-section" id="section-plugins">
+        <div class="glass-card">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Plugin Manager
+          </h3>
+          <div class="plugin-item">
+            <div class="plugin-info">
+              <h4>EssentialsX</h4>
+              <span>v2.20.1 — Core commands & utilities</span>
+            </div>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+          </div>
+          <div class="plugin-item">
+            <div class="plugin-info">
+              <h4>WorldEdit</h4>
+              <span>v7.3.0 — In-game map editor</span>
+            </div>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+          </div>
+          <div class="plugin-item">
+            <div class="plugin-info">
+              <h4>LuckPerms</h4>
+              <span>v5.4.102 — Permission management</span>
+            </div>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+          </div>
+          <div class="plugin-item">
+            <div class="plugin-info">
+              <h4>Vault</h4>
+              <span>v1.7.3 — Economy API</span>
+            </div>
+            <div class="toggle-switch" onclick="this.classList.toggle('active')"></div>
+          </div>
+          <div class="plugin-item">
+            <div class="plugin-info">
+              <h4>CoreProtect</h4>
+              <span>v22.2 — Block logging & rollback</span>
+            </div>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:20px">Install New Plugin</button>
+        </div>
+      </div>
+
+      <!-- Player List -->
+      <div class="panel-section" id="section-players">
+        <div class="glass-card">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Online Players (14)
+          </h3>
+          <div class="player-row">
+            <div class="player-avatar">A</div>
+            <div class="player-info">
+              <div class="name">Alex_Builder</div>
+              <div class="meta">Survival • 3h 12m</div>
+            </div>
+            <button class="player-action">Kick</button>
+          </div>
+          <div class="player-row">
+            <div class="player-avatar">S</div>
+            <div class="player-info">
+              <div class="name">Steve_Miner</div>
+              <div class="meta">Survival • 1h 45m</div>
+            </div>
+            <button class="player-action">Kick</button>
+          </div>
+          <div class="player-row">
+            <div class="player-avatar">N</div>
+            <div class="player-info">
+              <div class="name">NotchFan99</div>
+              <div class="meta">Creative • 52m</div>
+            </div>
+            <button class="player-action">Kick</button>
+          </div>
+          <div class="player-row">
+            <div class="player-avatar">C</div>
+            <div class="player-info">
+              <div class="name">Creeper_Hunter</div>
+              <div class="meta">Survival • 2h 08m</div>
+            </div>
+            <button class="player-action">Kick</button>
+          </div>
+          <div class="player-row">
+            <div class="player-avatar">E</div>
+            <div class="player-info">
+              <div class="name">EnderQueen</div>
+              <div class="meta">Survival • 4h 30m</div>
+            </div>
+            <button class="player-action">Kick</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Section switching
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.panel-section');
+    const sectionTitle = document.getElementById('sectionTitle');
+
+    const titles = {
+      status: 'Server Status',
+      files: 'File Manager',
+      domain: 'Domain',
+      settings: 'Server Settings',
+      toolbox: 'Toolbox',
+      plugins: 'Plugin Manager',
+      players: 'Player List'
+    };
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const section = item.dataset.section;
+
+        navItems.forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+
+        sections.forEach(s => s.classList.remove('active'));
+        document.getElementById('section-' + section).classList.add('active');
+
+        sectionTitle.textContent = titles[section];
+
+        // Close mobile sidebar
+        document.getElementById('sidebar').classList.remove('open');
+      });
+    });
+
+    // Mobile menu
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+  </script>
+</body>
+</html>
